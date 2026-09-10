@@ -47,5 +47,6 @@ The bundled NewAPI starts together with `docker compose up -d`. Initialize it an
 
 ## Next steps
 
+- Build from local checkouts and first-time setup: [Source-Build Deploy](../guides/source-build.md)
 - Full deployment/upgrade/backup: [Self-Hosting Handbook](../guides/self-hosting.md)
 - Connect your own models: [Configuring Model Providers](configuring-models.md)

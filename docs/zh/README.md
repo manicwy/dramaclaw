@@ -8,6 +8,7 @@
 | 文档 | 内容 |
 |---|---|
 | [快速开始](getting-started/quickstart.md) | 本地 Docker 跑起来 |
+| [源码构建部署](guides/source-build.md) | 本地改代码后从源码构建、配 `.env`、首次初始化 |
 | [安装指南](getting-started/installation.md) | macOS / Windows / Linux 各平台前置 |
 | [配置模型供应商](getting-started/configuring-models.md) | 接入你自己的模型网关 |
 

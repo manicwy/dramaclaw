@@ -301,7 +301,7 @@ docker compose -f docker-compose.release.yml up -d
 - **自定义** —— 一键初始化内置 `newapi` 网关，再自行配上游渠道。
 - **本地 + 官方混合** —— 主链路走官方，额外渠道走内置网关。
 
-完整步骤见 [快速开始](../docs/zh/getting-started/quickstart.md)。
+完整步骤见 [快速开始](../docs/zh/getting-started/quickstart.md)。本地改了代码、必须从源码构建时，按 [源码构建部署与初始化](../docs/zh/guides/source-build.md) 操作。
 
 版本与镜像源在 `.env` 里钉：`DRAMACLAW_VERSION`、`DRAMACLAW_GATEWAY_VERSION`、`DRAMACLAW_IMAGE_PREFIX`——仅镜像模式（`docker-compose.release.yml`）生效。国内拉取慢：设 `DRAMACLAW_IMAGE_PREFIX=claymore-registry.cn-chengdu.cr.aliyuncs.com/dramaclaw` 并同时钉两个版本（ACR 镜像只有钉 tag，没有 latest）。
 

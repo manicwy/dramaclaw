@@ -8,6 +8,7 @@
 | Doc | Contents |
 |---|---|
 | [Quickstart](getting-started/quickstart.md) | Get it running locally with Docker |
+| [Source-Build Deploy](guides/source-build.md) | Build from local checkouts, configure `.env`, first-time setup |
 | [Installation Guide](getting-started/installation.md) | Prerequisites for macOS / Windows / Linux |
 | [Configuring Model Providers](getting-started/configuring-models.md) | Connect your own model gateway |
 

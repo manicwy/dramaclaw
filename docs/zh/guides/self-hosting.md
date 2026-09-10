@@ -3,7 +3,7 @@
 
 # 自托管手册（Docker）
 
-> 用 Docker 部署、配置、升级、备份 DramaClaw CE。
+> 用 Docker 部署、配置、升级、备份 DramaClaw CE。本地改了代码、必须从源码构建时，先看 [源码构建部署与初始化](source-build.md)。
 
 CE 三个容器：`api` + `newapi`（内置 DramaClaw 网关，切到自定义/本地 + 官方混合模式前闲置）+ `web`，**无 PostgreSQL / 无 Redis / 无 Celery**（`ST_EDITION=ce`，任务在进程内 inline 执行）。模型默认走 DramaClaw 官方网关。
 

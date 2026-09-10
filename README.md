@@ -302,7 +302,7 @@ Open the app at <http://localhost:8080>; the REST API is at <http://localhost:87
 - **Custom** — one click initializes the bundled `newapi` gateway; then add your own upstream channels.
 - **Local + Official Hybrid** — official for the main pipeline, bundled gateway for extra channels.
 
-Full steps in the [Quick Start](docs/en/getting-started/quickstart.md).
+Full steps in the [Quick Start](docs/en/getting-started/quickstart.md). If you changed local code and must build from source, follow [Source-Build Deploy and First-Time Setup](docs/en/guides/source-build.md).
 
 Pin versions or switch registry in `.env` (`DRAMACLAW_VERSION`, `DRAMACLAW_GATEWAY_VERSION`, `DRAMACLAW_IMAGE_PREFIX`) — these apply to the image mode (`docker-compose.release.yml`) only. Mainland China: set `DRAMACLAW_IMAGE_PREFIX=claymore-registry.cn-chengdu.cr.aliyuncs.com/dramaclaw` and pin both versions (the ACR mirror carries pinned tags only).
 

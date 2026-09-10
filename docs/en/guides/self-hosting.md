@@ -3,7 +3,7 @@
 
 # Self-Hosting Handbook (Docker)
 
-> Deploy, configure, upgrade, and back up DramaClaw CE with Docker.
+> Deploy, configure, upgrade, and back up DramaClaw CE with Docker. If you have local code changes and must build from source, start with [Source-Build Deploy and First-Time Setup](source-build.md).
 
 CE ships three containers: `api` + `newapi` (the bundled DramaClaw gateway, idle until you switch to Custom or Local + Official Hybrid mode) + `web`, with **no PostgreSQL / no Redis / no Celery** (`ST_EDITION=ce`; tasks run inline within the process). Models go through the official DramaClaw gateway by default.
 

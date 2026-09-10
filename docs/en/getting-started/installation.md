@@ -39,7 +39,7 @@ docker compose up -d --build    # builds api, web and the gateway from the two c
 # no build? docker compose -f docker-compose.release.yml up -d   # pulls published images, no gateway clone needed
 ```
 
-After it's up, open **`http://localhost:8080`** in your browser (the app UI); the REST API is at `http://localhost:8780`. Go to Settings → Model Configuration → Official Channel, paste your DC key, save, and you're ready. For the full walkthrough see [Quickstart](quickstart.md); for start/stop/backup see the [Self-Hosting Handbook](../guides/self-hosting.md).
+After it's up, open **`http://localhost:8080`** in your browser (the app UI); the REST API is at `http://localhost:8780`. Go to Settings → Model Configuration → Official Channel, paste your DC key, save, and you're ready. Source-build and first-time setup: [Source-Build Deploy](../guides/source-build.md). Short path: [Quickstart](quickstart.md). Start/stop/backup: [Self-Hosting Handbook](../guides/self-hosting.md).
 
 > Windows users should clone and run inside the **WSL2 terminal** (keep it on the Linux filesystem, not under `/mnt/c/...`) to avoid volume-mount performance and line-ending issues.
 
@@ -110,6 +110,7 @@ Docker: `INSTALL_WORLD=1 docker compose up -d --build`. The slim base is CPU-onl
 ## Next steps
 
 - Get your first result working: [Quickstart](quickstart.md)
+- Build from local checkouts and first-time setup: [Source-Build Deploy](../guides/source-build.md)
 - Connect your own model gateway: [Configuring Model Providers](configuring-models.md)
 - Install/verify ffmpeg: [ffmpeg guide](../guides/ffmpeg.md)
 - Running into problems: [Troubleshooting](../guides/troubleshooting.md)

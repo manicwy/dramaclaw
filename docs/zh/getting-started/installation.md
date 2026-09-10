@@ -39,7 +39,7 @@ docker compose up -d --build    # 用两个 checkout 从源码构建 api、web �
 # 免构建：docker compose -f docker-compose.release.yml up -d   # 拉已发布镜像，不需要 clone 网关
 ```
 
-起好后浏览器打开 **`http://localhost:8080`**(应用界面);REST API 在 `http://localhost:8780`。进入设置 → 模型配置 → 官方渠道,粘贴 DC key 保存即用。完整步骤见 [快速开始](quickstart.md),起停/备份见 [自托管手册](../guides/self-hosting.md)。
+起好后浏览器打开 **`http://localhost:8080`**(应用界面);REST API 在 `http://localhost:8780`。进入设置 → 模型配置 → 官方渠道,粘贴 DC key 保存即用。源码构建与初始化逐步说明见 [源码构建部署](../guides/source-build.md),快速路径见 [快速开始](quickstart.md),起停/备份见 [自托管手册](../guides/self-hosting.md)。
 
 > Windows 用户在 **WSL2 终端**里 clone 与运行(放到 Linux 文件系统下,别放 `/mnt/c/...`),避免卷挂载性能与换行问题。
 
@@ -110,6 +110,7 @@ Docker:`INSTALL_WORLD=1 docker compose up -d --build`。slim base 为 CPU;GPU �
 ## 下一步
 
 - 跑通第一个结果:[快速开始](quickstart.md)
+- 本地改代码后从源码构建并初始化:[源码构建部署](../guides/source-build.md)
 - 接入自己的模型网关:[配置模型供应商](configuring-models.md)
 - 装/校验 ffmpeg:[ffmpeg 指南](../guides/ffmpeg.md)
 - 遇到问题:[排错](../guides/troubleshooting.md)

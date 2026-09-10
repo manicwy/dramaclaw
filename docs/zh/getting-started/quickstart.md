@@ -47,5 +47,6 @@ docker compose ps   # api、newapi、web 均应 running
 
 ## 下一步
 
+- 本地改代码后从源码构建并初始化:[源码构建部署](../guides/source-build.md)
 - 完整部署/升级/备份:[自托管手册](../guides/self-hosting.md)
 - 接入自己的模型:[配置模型供应商](configuring-models.md)
