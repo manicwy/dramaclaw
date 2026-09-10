@@ -1,0 +1,13 @@
+{
+  "folders": [
+    {
+      "name": "dramaclaw",
+      "path": "."
+    },
+    {
+      "name": "dramaclaw-gateway",
+      "path": "../dramaclaw-gateway"
+    }
+  ],
+  "settings": {}
+}
