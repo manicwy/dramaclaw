@@ -38,6 +38,9 @@ services:
       NEWAPI_ADMIN_USERNAME: root
       # 默认开；用户在同目录 .env 里写 NEWAPI_PROVISIONER_ENABLED=false 即可关（compose 插值读 .env）。
       NEWAPI_PROVISIONER_ENABLED: "${NEWAPI_PROVISIONER_ENABLED:-true}"
+      # 宿主 HTTP_PROXY（Clash 等）不能代理 Compose 服务名；漏掉 newapi 时初始化会 502 后一直等到超时。
+      NO_PROXY: "${NO_PROXY:-localhost,127.0.0.1,::1,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16},newapi"
+      no_proxy: "${no_proxy:-localhost,127.0.0.1,::1,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16},newapi"
     # 宿主发布端口可配，便于一机多套（每套换 ST_API_PORT + 换 -p 项目名）。
     # 冒号右侧 8780 是容器内端口，固定不变（web 经内部网络访问它）。
     ports:

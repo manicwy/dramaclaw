@@ -80,6 +80,8 @@ def test_api_provisioner_env_matches_desktop_contract() -> None:
     assert env["NEWAPI_SQLITE_PATH"] == "/newapi-data/one-api.db"
     assert env["NEWAPI_ADMIN_USERNAME"] == "root"
     assert env["NEWAPI_PROVISIONER_ENABLED"] == "${NEWAPI_PROVISIONER_ENABLED:-true}"
+    assert "newapi" in env["NO_PROXY"]
+    assert "newapi" in env["no_proxy"]
     assert "newapi-data:/newapi-data" in api["volumes"]
     assert api["depends_on"] == {"newapi": {"condition": "service_started"}}
 

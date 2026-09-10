@@ -391,6 +391,12 @@ def require_provisioner_enabled() -> None:
         raise PermissionError("NEWAPI_PROVISIONER_ENABLED is not enabled")
 
 
+def _admin_http_client(timeout: float) -> httpx.Client:
+    # Compose service names like ``newapi`` are not in default NO_PROXY.
+    # Host HTTP_PROXY (Clash etc.) would otherwise 502 the init calls.
+    return httpx.Client(timeout=timeout, trust_env=False)
+
+
 def normalize_admin_base_url(value: str | None) -> str:
     base = str(value or "").strip().rstrip("/")
     if base.endswith("/v1"):
@@ -607,7 +613,7 @@ def wait_for_newapi(cfg: NewApiProvisionerConfig) -> None:
     last_error: Exception | None = None
     while time.monotonic() < deadline:
         try:
-            with httpx.Client(timeout=5) as client:
+            with _admin_http_client(timeout=5) as client:
                 res = client.get(f"{cfg.admin_base_url}/api/setup")
             if res.status_code < 500:
                 return
@@ -620,7 +626,7 @@ def wait_for_newapi(cfg: NewApiProvisionerConfig) -> None:
 
 def get_newapi_setup_status(cfg: NewApiProvisionerConfig) -> NewApiSetupStatus:
     wait_for_newapi(cfg)
-    with httpx.Client(timeout=10) as client:
+    with _admin_http_client(timeout=10) as client:
         res = client.get(f"{cfg.admin_base_url}/api/setup")
     try:
         body: Any = res.json()
@@ -683,7 +689,7 @@ def ensure_newapi_setup(
             }
         )
 
-    with httpx.Client(timeout=15) as client:
+    with _admin_http_client(timeout=15) as client:
         res = client.post(f"{cfg.admin_base_url}/api/setup", json=payload)
     try:
         body: Any = res.json()
@@ -775,7 +781,7 @@ def channel_items(body: Any) -> list[dict[str, Any]]:
 
 
 def verify_admin_api(cfg: NewApiProvisionerConfig, admin: AdminToken) -> None:
-    with httpx.Client(timeout=10) as client:
+    with _admin_http_client(timeout=10) as client:
         res = client.get(
             f"{cfg.admin_base_url}/api/channel/",
             params={"p": 1, "page_size": 1},
@@ -820,7 +826,7 @@ def ensure_admin_access_token(cfg: NewApiProvisionerConfig) -> AdminToken:
 def get_token_key(
     cfg: NewApiProvisionerConfig, admin: AdminToken, token_id: int
 ) -> str:
-    with httpx.Client(timeout=15) as client:
+    with _admin_http_client(timeout=15) as client:
         res = client.post(
             f"{cfg.admin_base_url}/api/token/{token_id}/key",
             headers=admin_headers(admin),
@@ -844,7 +850,7 @@ def find_token_by_name(
     admin: AdminToken,
     name: str,
 ) -> dict[str, Any] | None:
-    with httpx.Client(timeout=15) as client:
+    with _admin_http_client(timeout=15) as client:
         res = client.get(
             f"{cfg.admin_base_url}/api/token/search",
             params={"keyword": name, "p": 1, "page_size": 100},
@@ -899,7 +905,7 @@ def create_or_reuse_relay_token(
         "allow_ips": "",
         "cross_group_retry": False,
     }
-    with httpx.Client(timeout=15) as client:
+    with _admin_http_client(timeout=15) as client:
         res = client.post(
             f"{cfg.admin_base_url}/api/token/",
             headers=admin_headers(admin),
@@ -1079,7 +1085,7 @@ def list_channels(
     max_pages: int = 20,
 ) -> list[dict[str, Any]]:
     channels: list[dict[str, Any]] = []
-    with httpx.Client(timeout=15) as client:
+    with _admin_http_client(timeout=15) as client:
         for page in range(1, max_pages + 1):
             res = client.get(
                 f"{cfg.admin_base_url}/api/channel/",
@@ -1139,7 +1145,7 @@ def delete_channel_by_name(
     channel_id = existing.get("id")
     if channel_id is None:
         raise RuntimeError(f"delete channel {name} failed: missing channel id")
-    with httpx.Client(timeout=15) as client:
+    with _admin_http_client(timeout=15) as client:
         res = client.delete(
             f"{cfg.admin_base_url}/api/channel/{channel_id}",
             headers=admin_headers(admin),
@@ -1161,7 +1167,7 @@ def get_channel_detail(
     admin: AdminToken,
     channel_id: int | str,
 ) -> dict[str, Any]:
-    with httpx.Client(timeout=15) as client:
+    with _admin_http_client(timeout=15) as client:
         res = client.get(
             f"{cfg.admin_base_url}/api/channel/{channel_id}",
             headers=admin_headers(admin),
@@ -1184,7 +1190,7 @@ def list_channel_types(
     admin: AdminToken,
 ) -> list[dict[str, Any]]:
     """Return the channel adapters exposed by the connected NewAPI instance."""
-    with httpx.Client(timeout=15) as client:
+    with _admin_http_client(timeout=15) as client:
         res = client.get(
             f"{cfg.admin_base_url}/api/channel/types",
             params={"status": 1},
@@ -1258,7 +1264,7 @@ def update_channel(
     last_status = 0
     last_body: Any = None
     last_payload: dict[str, Any] | None = None
-    with httpx.Client(timeout=30) as client:
+    with _admin_http_client(timeout=30) as client:
         for method, url, body_payload in attempts:
             res = client.request(
                 method, url, headers=admin_headers(admin), json=body_payload
@@ -1305,7 +1311,7 @@ def create_channel(
     admin: AdminToken,
     payload: dict[str, Any],
 ) -> dict[str, Any]:
-    with httpx.Client(timeout=30) as client:
+    with _admin_http_client(timeout=30) as client:
         res = client.post(
             f"{cfg.admin_base_url}/api/channel/",
             headers=admin_headers(admin),

@@ -52,6 +52,7 @@ from novelvideo.generators.video_generator import (
     newapi_video_backend_options,
 )
 from novelvideo.newapi_provisioner import (
+    _admin_http_client,
     _merge_channel_payload,
     AdminToken,
     build_channel_payload,
@@ -1643,6 +1644,11 @@ def test_provisioner_keeps_loopback_admin_url_when_env_is_also_loopback(
     cfg = get_provisioner_config("http://127.0.0.1:3000")
 
     assert cfg.admin_base_url == "http://127.0.0.1:3000"
+
+
+def test_provisioner_admin_http_client_ignores_proxy_env():
+    with _admin_http_client(timeout=5) as client:
+        assert client.trust_env is False
 
 
 def test_database_status_does_not_expose_database_credentials(monkeypatch, tmp_path):
