@@ -75,6 +75,10 @@ class EffectiveMediaRelayConfig:
     cloudinary_api_key: str = ""
     cloudinary_api_secret: str = ""
     cloudinary_folder: str = ""
+    cos_bucket: str = ""
+    cos_region: str = ""
+    cos_secret_id: str = ""
+    cos_secret_key: str = ""
 
 
 @dataclass(frozen=True)
@@ -1054,6 +1058,10 @@ def get_effective_media_relay_config(
     env_cloudinary_api_key: str | None = None,
     env_cloudinary_api_secret: str | None = None,
     env_cloudinary_folder: str | None = None,
+    env_cos_bucket: str | None = None,
+    env_cos_region: str | None = None,
+    env_cos_secret_id: str | None = None,
+    env_cos_secret_key: str | None = None,
 ) -> EffectiveMediaRelayConfig:
     if explicit_config is not None:
         if type(explicit_config) is not EffectiveMediaRelayConfig:
@@ -1073,6 +1081,10 @@ def get_effective_media_relay_config(
     db_cloudinary_folder = (
         str(settings.get("cloudinary_relay_folder", "")).strip().strip("/")
     )
+    db_cos_bucket = str(settings.get("cos_relay_bucket", "")).strip()
+    db_cos_region = str(settings.get("cos_relay_region", "")).strip()
+    db_cos_secret_id = str(settings.get("cos_relay_secret_id", "")).strip()
+    db_cos_secret_key = str(settings.get("cos_relay_secret_key", "")).strip()
     has_db_config = any(
         [
             db_provider,
@@ -1084,6 +1096,10 @@ def get_effective_media_relay_config(
             db_cloudinary_api_key,
             db_cloudinary_api_secret,
             db_cloudinary_folder,
+            db_cos_bucket,
+            db_cos_region,
+            db_cos_secret_id,
+            db_cos_secret_key,
         ]
     )
     if has_db_config:
@@ -1099,6 +1115,10 @@ def get_effective_media_relay_config(
             cloudinary_api_key=db_cloudinary_api_key,
             cloudinary_api_secret=db_cloudinary_api_secret,
             cloudinary_folder=db_cloudinary_folder,
+            cos_bucket=db_cos_bucket,
+            cos_region=db_cos_region,
+            cos_secret_id=db_cos_secret_id,
+            cos_secret_key=db_cos_secret_key,
         )
 
     raw_ttl = (
@@ -1140,6 +1160,14 @@ def get_effective_media_relay_config(
         )
         .strip()
         .strip("/"),
+        cos_bucket=str(env_cos_bucket or os.environ.get("COS_RELAY_BUCKET", "")).strip(),
+        cos_region=str(env_cos_region or os.environ.get("COS_RELAY_REGION", "")).strip(),
+        cos_secret_id=str(
+            env_cos_secret_id or os.environ.get("COS_RELAY_SECRET_ID", "")
+        ).strip(),
+        cos_secret_key=str(
+            env_cos_secret_key or os.environ.get("COS_RELAY_SECRET_KEY", "")
+        ).strip(),
     )
 
 
@@ -1345,6 +1373,10 @@ def build_media_relay_status(
     env_cloudinary_api_key: str | None = None,
     env_cloudinary_api_secret: str | None = None,
     env_cloudinary_folder: str | None = None,
+    env_cos_bucket: str | None = None,
+    env_cos_region: str | None = None,
+    env_cos_secret_id: str | None = None,
+    env_cos_secret_key: str | None = None,
 ) -> dict[str, Any]:
     effective = get_effective_media_relay_config(
         env_provider=env_provider,
@@ -1357,6 +1389,10 @@ def build_media_relay_status(
         env_cloudinary_api_key=env_cloudinary_api_key,
         env_cloudinary_api_secret=env_cloudinary_api_secret,
         env_cloudinary_folder=env_cloudinary_folder,
+        env_cos_bucket=env_cos_bucket,
+        env_cos_region=env_cos_region,
+        env_cos_secret_id=env_cos_secret_id,
+        env_cos_secret_key=env_cos_secret_key,
     )
     aliyun_configured = bool(
         effective.endpoint
@@ -1368,6 +1404,12 @@ def build_media_relay_status(
         effective.cloud_name
         and effective.cloudinary_api_key
         and effective.cloudinary_api_secret
+    )
+    cos_configured = bool(
+        effective.cos_bucket
+        and effective.cos_region
+        and effective.cos_secret_id
+        and effective.cos_secret_key
     )
     return {
         "source": effective.source,
@@ -1381,9 +1423,15 @@ def build_media_relay_status(
         "cloudinaryApiKeyPreview": mask_secret(effective.cloudinary_api_key),
         "cloudinaryApiSecretPreview": mask_secret(effective.cloudinary_api_secret),
         "apiFolder": effective.cloudinary_folder,
+        "cosBucket": effective.cos_bucket,
+        "cosRegion": effective.cos_region,
+        "cosSecretIdPreview": mask_secret(effective.cos_secret_id),
+        "cosSecretKeyPreview": mask_secret(effective.cos_secret_key),
         "configured": (
             cloudinary_configured
             if effective.provider == "cloudinary"
+            else cos_configured
+            if effective.provider == "cos"
             else aliyun_configured
         ),
     }

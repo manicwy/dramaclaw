@@ -36,6 +36,9 @@ About **30 `*_MODEL` logical model names** (e.g. `HERMES_MODEL=DC-hermes-LLM`) m
 |---|---|
 | `OSS_RELAY_AK` / `OSS_RELAY_SK` | Object storage credentials required by the reference-image feature. A pure-text → video flow can skip these. |
 | `OSS_RELAY_ENDPOINT` / `OSS_RELAY_BUCKET` | Relay endpoint and bucket. |
+| `MEDIA_RELAY_PROVIDER` | Set to `cos` to use Tencent Cloud COS. |
+| `COS_RELAY_BUCKET` / `COS_RELAY_REGION` | COS bucket and region, e.g. `ap-guangzhou`. |
+| `COS_RELAY_SECRET_ID` / `COS_RELAY_SECRET_KEY` | COS API credentials. Do not save Media Storage in the web UI when using COS, or database settings will override these variables. |
 
 ## Video / Image Parameters
 

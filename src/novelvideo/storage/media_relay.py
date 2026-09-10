@@ -277,7 +277,182 @@ class CloudinaryRelay:
         )
 
 
-def get_media_relay() -> AliyunOSSRelay | CloudinaryRelay:
+def _cos_presigned_url(
+    *,
+    method: str,
+    key: str,
+    secret_id: str,
+    secret_key: str,
+    bucket: str,
+    region: str,
+    ttl: int,
+) -> str:
+    """Build a Tencent Cloud COS presigned URL (q-sign sha1 scheme, no SDK).
+
+    Replicates the output of the official ``cos-python-sdk-v5``
+    ``get_presigned_url`` (``CosS3Auth`` in ``qcloud_cos/cos_auth.py``), so
+    upstream services can fetch the object with a plain GET.
+
+    Scheme: ``q-sign-algorithm=sha1`` with ``format_str`` = method(小写) /
+    path / signed-params / signed-headers, ``str_to_sign = "sha1\\n{time}\\n{sha1}\\n"``
+    and HMAC-SHA1 keyed by ``sign_key = HMAC-SHA1(secret_key, sign_time)``.
+    """
+
+    import hashlib
+    import hmac
+    import time
+    import urllib.parse
+
+    method = str(method or "GET").strip().lower()
+    host = f"{bucket}.cos.{region}.myqcloud.com"
+    now = int(time.time())
+    start = now - 60  # 60s clock-skew tolerance, mirroring the SDK
+    end = now + max(int(ttl), 60)
+    sign_time = f"{start};{end}"
+
+    path = "/" + str(key).lstrip("/")
+    uri_params: dict[str, str] = {}
+    headers = {"host": host}
+    format_str = (
+        "\n".join(
+            [
+                method,
+                path,
+                "&".join(f"{k}={v}" for k, v in sorted(uri_params.items())),
+                "&".join(f"{k}={v}" for k, v in sorted(headers.items())),
+            ]
+        )
+        + "\n"
+    )
+    format_sha1 = hashlib.sha1(format_str.encode("utf-8")).hexdigest()
+    str_to_sign = f"sha1\n{sign_time}\n{format_sha1}\n"
+    sign_key = hmac.new(
+        secret_key.encode("utf-8"), sign_time.encode("utf-8"), hashlib.sha1
+    ).hexdigest()
+    signature = hmac.new(
+        sign_key.encode("utf-8"), str_to_sign.encode("utf-8"), hashlib.sha1
+    ).hexdigest()
+
+    query = (
+        "q-sign-algorithm=sha1"
+        f"&q-ak={secret_id}"
+        f"&q-sign-time={sign_time}"
+        f"&q-key-time={sign_time}"
+        "&q-header-list=host"
+        "&q-url-param-list="
+        f"&q-signature={signature}"
+    )
+    # URL-encode parameter values the same way the SDK's urlencode does
+    # (e.g. the ';' inside sign-time becomes %3B).
+    encoded_query = "&".join(
+        f"{urllib.parse.quote(k, safe='')}={urllib.parse.quote(v, safe='')}"
+        for k, v in (item.split("=", 1) for item in query.split("&"))
+    )
+    return (
+        f"https://{host}/{urllib.parse.quote(path, safe='/').lstrip('/')}"
+        f"?{encoded_query}"
+    )
+
+
+class TencentCOSRelay:
+    """Upload transient bytes to Tencent Cloud COS and return a signed URL.
+
+    Uses dependency-free q-sign (sha1) presigned URLs — the same scheme as
+    the official ``cos-python-sdk-v5`` ``get_presigned_url`` — so no SDK
+    dependency is required. The bucket must be reachable at
+    ``https://<bucket>.cos.<region>.myqcloud.com``.
+    """
+
+    def __init__(
+        self,
+        *,
+        bucket: str,
+        region: str,
+        secret_id: str,
+        secret_key: str,
+    ) -> None:
+        missing = [
+            name
+            for name, value in {
+                "COS_RELAY_BUCKET": bucket,
+                "COS_RELAY_REGION": region,
+                "COS_RELAY_SECRET_ID": secret_id,
+                "COS_RELAY_SECRET_KEY": secret_key,
+            }.items()
+            if not str(value or "").strip()
+        ]
+        if missing:
+            raise MediaRelayConfigError(
+                "COS media relay config missing: " + ", ".join(missing)
+            )
+        self._bucket = str(bucket).strip()
+        self._region = str(region).strip()
+        self._secret_id = str(secret_id).strip()
+        self._secret_key = str(secret_key).strip()
+
+    def upload_bytes(
+        self,
+        data: bytes,
+        *,
+        ext: str = "png",
+        ttl: int = 1800,
+        resource_type: str = "image",
+        object_key: str | None = None,
+    ) -> str:
+        if not data:
+            raise ValueError("cannot relay empty media bytes")
+
+        import httpx
+
+        ext = _normalize_ext(ext)
+        key = object_key or (
+            f"relay/{datetime.now(timezone.utc):%Y%m%d}/{uuid.uuid4().hex}.{ext}"
+        )
+        if not _is_safe_object_key(key):
+            raise ServiceEgressDenied("object-key")
+        put_url = _cos_presigned_url(
+            method="PUT",
+            key=key,
+            secret_id=self._secret_id,
+            secret_key=self._secret_key,
+            bucket=self._bucket,
+            region=self._region,
+            ttl=ttl,
+        )
+        try:
+            with httpx.Client(timeout=180.0, trust_env=False) as client:
+                response = client.put(put_url, content=data)
+                response.raise_for_status()
+        except httpx.HTTPStatusError as exc:
+            detail = str(exc.response.text or "")[:500]
+            suffix = f": {detail}" if detail else ""
+            raise MediaRelayConfigError(
+                "COS media relay upload failed "
+                f"(HTTP {exc.response.status_code}){suffix}"
+            ) from exc
+        except httpx.HTTPError as exc:
+            raise MediaRelayConfigError(f"COS media relay upload failed: {exc}") from exc
+
+        return _cos_presigned_url(
+            method="GET",
+            key=key,
+            secret_id=self._secret_id,
+            secret_key=self._secret_key,
+            bucket=self._bucket,
+            region=self._region,
+            ttl=ttl,
+        )
+
+    def upload_file(self, path: str | Path, *, ttl: int = 1800) -> str:
+        file_path = Path(path)
+        return self.upload_bytes(
+            file_path.read_bytes(),
+            ext=file_path.suffix.lstrip(".") or "png",
+            ttl=ttl,
+        )
+
+
+def get_media_relay() -> AliyunOSSRelay | CloudinaryRelay | TencentCOSRelay:
     """Build the configured media relay.
 
     The relay is intentionally not cached so tests can monkeypatch config and
@@ -297,6 +472,10 @@ def get_media_relay() -> AliyunOSSRelay | CloudinaryRelay:
         env_cloudinary_api_key=getattr(config, "CLOUDINARY_RELAY_API_KEY", ""),
         env_cloudinary_api_secret=getattr(config, "CLOUDINARY_RELAY_API_SECRET", ""),
         env_cloudinary_folder=getattr(config, "CLOUDINARY_RELAY_FOLDER", ""),
+        env_cos_bucket=getattr(config, "COS_RELAY_BUCKET", ""),
+        env_cos_region=getattr(config, "COS_RELAY_REGION", ""),
+        env_cos_secret_id=getattr(config, "COS_RELAY_SECRET_ID", ""),
+        env_cos_secret_key=getattr(config, "COS_RELAY_SECRET_KEY", ""),
     )
     provider = relay_config.provider
     if provider == "cloudinary":
@@ -305,6 +484,13 @@ def get_media_relay() -> AliyunOSSRelay | CloudinaryRelay:
             api_key=relay_config.cloudinary_api_key,
             api_secret=relay_config.cloudinary_api_secret,
             folder=relay_config.cloudinary_folder,
+        )
+    if provider == "cos":
+        return TencentCOSRelay(
+            bucket=relay_config.cos_bucket,
+            region=relay_config.cos_region,
+            secret_id=relay_config.cos_secret_id,
+            secret_key=relay_config.cos_secret_key,
         )
     if provider != "aliyun_oss":
         raise MediaRelayConfigError(
@@ -334,6 +520,10 @@ def _default_media_relay_ttl_seconds() -> int:
         env_cloudinary_api_key=getattr(config, "CLOUDINARY_RELAY_API_KEY", ""),
         env_cloudinary_api_secret=getattr(config, "CLOUDINARY_RELAY_API_SECRET", ""),
         env_cloudinary_folder=getattr(config, "CLOUDINARY_RELAY_FOLDER", ""),
+        env_cos_bucket=getattr(config, "COS_RELAY_BUCKET", ""),
+        env_cos_region=getattr(config, "COS_RELAY_REGION", ""),
+        env_cos_secret_id=getattr(config, "COS_RELAY_SECRET_ID", ""),
+        env_cos_secret_key=getattr(config, "COS_RELAY_SECRET_KEY", ""),
     ).ttl_seconds
 
 

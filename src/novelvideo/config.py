@@ -602,6 +602,11 @@ CLOUDINARY_RELAY_API_KEY = os.environ.get("CLOUDINARY_RELAY_API_KEY", "")
 CLOUDINARY_RELAY_API_SECRET = os.environ.get("CLOUDINARY_RELAY_API_SECRET", "")
 CLOUDINARY_RELAY_FOLDER = os.environ.get("CLOUDINARY_RELAY_FOLDER", "")
 
+COS_RELAY_BUCKET = os.environ.get("COS_RELAY_BUCKET", "")
+COS_RELAY_REGION = os.environ.get("COS_RELAY_REGION", "")
+COS_RELAY_SECRET_ID = os.environ.get("COS_RELAY_SECRET_ID", "")
+COS_RELAY_SECRET_KEY = os.environ.get("COS_RELAY_SECRET_KEY", "")
+
 
 def get_style_labels() -> dict[str, str]:
     """获取风格 ID -> 显示标签的映射。

@@ -36,6 +36,11 @@ deploy/compose/windows/users.json
 .claude/settings.local.json
 .claude/skills/**/*-workspace/
 *.skill
+
+# 本地工具 / IDE 配置（codex/codegraph/Cursor，勿提交）
+.codegraph/
+.cursor/
+.cursorrules
 /scripts/output
 node_modules/
 /.pnpm-store/

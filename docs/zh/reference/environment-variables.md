@@ -35,6 +35,9 @@ CE 的渠道选择、网关地址和 token 由网页「设置 → 模型配置�
 |---|---|
 | `OSS_RELAY_AK` / `OSS_RELAY_SK` | 参考图功能所需的对象存储凭据。纯文本→成片流程可不配。 |
 | `OSS_RELAY_ENDPOINT` / `OSS_RELAY_BUCKET` | relay 端点与桶。 |
+| `MEDIA_RELAY_PROVIDER` | 设为 `cos` 时改用腾讯云 COS。 |
+| `COS_RELAY_BUCKET` / `COS_RELAY_REGION` | COS 存储桶与地域，例如 `ap-guangzhou`。 |
+| `COS_RELAY_SECRET_ID` / `COS_RELAY_SECRET_KEY` | COS API 密钥。使用 COS 时请勿在网页「媒体存储」保存，否则数据库配置会覆盖环境变量。 |
 
 ## 视频 / 图像参数
 

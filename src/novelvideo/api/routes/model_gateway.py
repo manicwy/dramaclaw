@@ -470,6 +470,10 @@ def _media_relay_status() -> dict[str, Any]:
         env_cloudinary_api_key=app_config.CLOUDINARY_RELAY_API_KEY,
         env_cloudinary_api_secret=app_config.CLOUDINARY_RELAY_API_SECRET,
         env_cloudinary_folder=app_config.CLOUDINARY_RELAY_FOLDER,
+        env_cos_bucket=app_config.COS_RELAY_BUCKET,
+        env_cos_region=app_config.COS_RELAY_REGION,
+        env_cos_secret_id=app_config.COS_RELAY_SECRET_ID,
+        env_cos_secret_key=app_config.COS_RELAY_SECRET_KEY,
     )
 
 
@@ -671,6 +675,10 @@ async def save_media_relay_settings(body: MediaRelayConfigBody) -> dict[str, Any
         env_cloudinary_api_key=app_config.CLOUDINARY_RELAY_API_KEY,
         env_cloudinary_api_secret=app_config.CLOUDINARY_RELAY_API_SECRET,
         env_cloudinary_folder=app_config.CLOUDINARY_RELAY_FOLDER,
+        env_cos_bucket=app_config.COS_RELAY_BUCKET,
+        env_cos_region=app_config.COS_RELAY_REGION,
+        env_cos_secret_id=app_config.COS_RELAY_SECRET_ID,
+        env_cos_secret_key=app_config.COS_RELAY_SECRET_KEY,
     )
 
     def merge_field(value: str | None, saved: str, *, secret: bool = False) -> str:

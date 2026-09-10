@@ -257,6 +257,19 @@ The Bucket does not need public-read access. DramaClaw generates temporary signe
 
 Enter Cloud name, API Key, API Secret, and an optional folder. Find them under **Product environment settings → API Keys** in Cloudinary. Saved database settings take precedence over environment variables, and full secrets are never returned to the frontend.
 
+### Tencent Cloud COS
+
+Set `MEDIA_RELAY_PROVIDER=cos` together with the following environment variables (see `.env.example`):
+
+| Environment variable | Example or notes |
+|---|---|
+| `COS_RELAY_BUCKET` | Your COS bucket name |
+| `COS_RELAY_REGION` | e.g. `ap-guangzhou` |
+| `COS_RELAY_SECRET_ID` | API key SecretId (a narrowly scoped sub-account is recommended) |
+| `COS_RELAY_SECRET_KEY` | Matching SecretKey |
+
+COS is currently configured through environment variables only: the web **Media Storage** page supports Aliyun OSS and Cloudinary, and saving settings there makes database configuration take precedence (provider falls back to `aliyun_oss`). Signed URLs use the COS q-sign (sha1) scheme — the same output as the official `cos-python-sdk-v5` `get_presigned_url` — implemented with the standard library, so no extra SDK dependency is needed; the bucket must be reachable at `https://<bucket>.cos.<region>.myqcloud.com`.
+
 ## Troubleshooting
 
 | Symptom | What to check |

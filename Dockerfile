@@ -54,7 +54,7 @@ RUN set -eux; \
     fi; \
     mkdir -p /data
 
-RUN uv tool install 'hermes-agent[acp]'
+RUN UV_DEFAULT_INDEX=https://mirrors.aliyun.com/pypi/simple/ uv tool install 'hermes-agent[acp]'
 
 ENV PATH="/app/.venv/bin:/root/.local/bin:$PATH"
 

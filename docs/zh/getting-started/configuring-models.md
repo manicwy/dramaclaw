@@ -257,6 +257,19 @@ Bucket 无需公开读；DramaClaw 使用临时签名 URL 授权上游读取。
 
 填写 Cloud name、API Key、API Secret 和可选文件夹。可在 Cloudinary 控制台的 **Product environment settings → API Keys** 查看这些值。保存后本地数据库配置优先于环境变量，完整密钥不会返回前端。
 
+### 腾讯云 COS
+
+将 `MEDIA_RELAY_PROVIDER=cos` 与以下环境变量一起配置（见 `.env.example`）：
+
+| 环境变量 | 示例或说明 |
+|---|---|
+| `COS_RELAY_BUCKET` | COS 存储桶名称 |
+| `COS_RELAY_REGION` | 例如 `ap-guangzhou` |
+| `COS_RELAY_SECRET_ID` | API 密钥 SecretId（建议使用权限收窄的子账号） |
+| `COS_RELAY_SECRET_KEY` | 对应 SecretKey |
+
+COS 目前仅支持环境变量配置：网页「媒体存储」只支持阿里云 OSS 和 Cloudinary，在该页保存后数据库配置会优先生效（provider 会回落到 `aliyun_oss`）。签名 URL 使用 COS q-sign（sha1）方案，输出与官方 `cos-python-sdk-v5` 的 `get_presigned_url` 一致，用标准库实现，无需额外 SDK；存储桶需能通过 `https://<bucket>.cos.<region>.myqcloud.com` 访问。
+
 ## 常见问题
 
 | 现象 | 检查方法 |
