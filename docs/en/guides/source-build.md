@@ -172,6 +172,7 @@ The settings page should show the enabled mode. For reference images, confirm th
 | COS reference images still hit OSS | **Media Storage** in the UI overrode env. Do not save that page when using COS. |
 | Port 3000 in use | Set `ST_NEWAPI_PORT` in `.env` and run `docker compose up -d`. `api` does not wait for gateway health. |
 | Port 8780 in use | Set `ST_API_PORT`. |
+| Custom init times out / `Request timed out .../newapi/init` | The UI sends `http://127.0.0.1:3000`; inside the api container that must become `http://newapi:3000`. Rebuild api from source and retry init. |
 | `No available channel for model ...` | In Custom mode, check that the channel is enabled and the logical-to-upstream mapping is correct. |
 
 Backup, upgrade, and volumes: [Self-Hosting](self-hosting.md). Platform prerequisites: [Installation](../getting-started/installation.md).

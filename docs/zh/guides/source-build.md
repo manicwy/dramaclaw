@@ -172,6 +172,7 @@ curl -sS -o /dev/null -w "%{http_code}\n" http://127.0.0.1:3000/api/status
 | COS 参考图仍走 OSS | 网页「媒体存储」覆盖了环境变量。用 COS 时不要在该页保存。 |
 | 3000 端口占用 | `.env` 设 `ST_NEWAPI_PORT` 后重新 `docker compose up -d`。`api` 不等网关健康，不会被卡住。 |
 | 8780 占用 | `.env` 设 `ST_API_PORT`。 |
+| 自定义初始化超时 / `Request timed out .../newapi/init` | 页面会传 `http://127.0.0.1:3000`，api 容器内应改走 `http://newapi:3000`。源码构建请重建 api 后再点一次初始化。 |
 | `No available channel for model ...` | 自定义模式下检查渠道是否启用、逻辑模型映射和上游模型名。 |
 
 备份、升级、数据卷见 [自托管手册](self-hosting.md)。平台前置见 [安装指南](../getting-started/installation.md)。

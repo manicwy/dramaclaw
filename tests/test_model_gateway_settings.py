@@ -1623,6 +1623,28 @@ def test_provisioner_config_request_database_overrides_saved_settings(
     assert cfg.admin_username == "request-root"
 
 
+def test_provisioner_rewrites_loopback_admin_url_to_compose_service(
+    monkeypatch, tmp_path
+):
+    _isolate_settings_db(monkeypatch, tmp_path)
+    monkeypatch.setenv("NEWAPI_ADMIN_BASE_URL", "http://newapi:3000")
+
+    cfg = get_provisioner_config("http://127.0.0.1:3000")
+
+    assert cfg.admin_base_url == "http://newapi:3000"
+
+
+def test_provisioner_keeps_loopback_admin_url_when_env_is_also_loopback(
+    monkeypatch, tmp_path
+):
+    _isolate_settings_db(monkeypatch, tmp_path)
+    monkeypatch.setenv("NEWAPI_ADMIN_BASE_URL", "http://127.0.0.1:3000")
+
+    cfg = get_provisioner_config("http://127.0.0.1:3000")
+
+    assert cfg.admin_base_url == "http://127.0.0.1:3000"
+
+
 def test_database_status_does_not_expose_database_credentials(monkeypatch, tmp_path):
     _isolate_settings_db(monkeypatch, tmp_path)
     save_newapi_database_config(

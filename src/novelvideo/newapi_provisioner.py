@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import ipaddress
 import json
 import inspect
 import os
@@ -397,6 +398,38 @@ def normalize_admin_base_url(value: str | None) -> str:
     return base
 
 
+def _is_loopback_admin_url(value: str) -> bool:
+    host = (urlparse(normalize_admin_base_url(value)).hostname or "").lower()
+    if host in {"localhost", "127.0.0.1", "::1"}:
+        return True
+    try:
+        return ipaddress.ip_address(host).is_loopback
+    except ValueError:
+        return False
+
+
+def _resolve_admin_base_url(*candidates: str | None) -> str:
+    """Pick the first non-empty admin URL, then rewrite loopback for Docker.
+
+    The settings page sends ``http://127.0.0.1:3000`` (the host-side gateway
+    bind). Inside the Compose ``api`` container that address is not NewAPI;
+    Compose injects ``NEWAPI_ADMIN_BASE_URL=http://newapi:3000`` for that
+    hop. Local uv/dev keeps the loopback URL because the env is also
+    loopback.
+    """
+    requested = normalize_admin_base_url(
+        _first_non_empty(*candidates, "http://127.0.0.1:3000")
+    )
+    env_url = normalize_admin_base_url(os.environ.get("NEWAPI_ADMIN_BASE_URL", ""))
+    if (
+        env_url
+        and _is_loopback_admin_url(requested)
+        and not _is_loopback_admin_url(env_url)
+    ):
+        return env_url
+    return requested
+
+
 def mask_token(token: str) -> str:
     clean = str(token or "").strip()
     if not clean:
@@ -480,13 +513,10 @@ def get_provisioner_config(
             str(os.environ.get("NEWAPI_SQLITE_PATH", "")).strip() or _ce_sqlite_path()
         )
     return NewApiProvisionerConfig(
-        admin_base_url=normalize_admin_base_url(
-            _first_non_empty(
-                admin_base_url,
-                settings.get("custom_newapi_admin_base_url"),
-                os.environ.get("NEWAPI_ADMIN_BASE_URL", ""),
-                "http://127.0.0.1:3000",
-            )
+        admin_base_url=_resolve_admin_base_url(
+            admin_base_url,
+            settings.get("custom_newapi_admin_base_url"),
+            os.environ.get("NEWAPI_ADMIN_BASE_URL", ""),
         ),
         sql_dsn=resolved_sql_dsn,
         sqlite_path=resolved_sqlite_path,

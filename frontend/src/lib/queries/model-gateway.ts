@@ -461,7 +461,7 @@ export function useInitCustomNewApi() {
       api
         .post("api/v1/model-gateway/custom/newapi/init", {
           json: input,
-          timeout: 60_000,
+          timeout: 130_000,
           throwHttpErrors: false,
         })
         .json<OkResponse<InitCustomNewApiResult> | ErrorResponse | FastApiErrorResponse>(),
